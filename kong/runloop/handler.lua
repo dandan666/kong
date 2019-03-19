@@ -78,17 +78,54 @@ do
     return false
   end
 
-  local function get_service_for_route(db, route)
+
+  local function load_service_from_db(service_pk)
+    local service, err = kong.db.services:select(service_pk)
+    -- kong.db.services:select returns a third value, which we discard here:
+    return service, err
+  end
+
+
+  local function get_service_for_route(db, route, services_cache)
     local service_pk = route.service
     if not service_pk then
       return nil
     end
 
-    local service, err = db.services:select(service_pk)
-    if not service then
-      return nil, "could not find service for route (" .. route.id .. "): " ..
-                  err
+    local service, err
+    local id = service_pk.id
+
+    -- The kong.cache module is not available on init phase, but
+    -- the initial router is created on init. So this branch is for
+    -- the "updates" the router will receive once initialized
+    if kong.cache then
+
+      local cache_key = db.services:cache_key(service_pk.id)
+      service, err = kong.cache:get(cache_key, CACHE_ROUTER_OPTS,
+                                    load_service_from_db, service_pk)
+
+
+    -- This branch is for creating the first router, during the init
+    -- phase. kong.cache is not present there, so we use services_cache
+    -- (a regular Lua table) for caching
+    else
+      if services_cache[id] then
+        service = services_cache[id]
+
+      else
+        service, err = load_service_from_db(service_pk)
+        services_cache[id] = service
+      end
     end
+
+    if err then
+      return nil, "error raised while finding service for route (" .. route.id .. "): " ..
+                  err
+
+    elseif not service then
+      return nil, "could not find service for route (" .. route.id .. ")"
+    end
+
 
     -- TODO: this should not be needed as the schema should check it already
     if SUBSYSTEMS[service.protocol] ~= subsystem then
@@ -103,6 +140,7 @@ do
 
   build_router = function(db, version)
     local routes, i = {}, 0
+    local services_cache = {} -- used only on init phase
 
     for route, err in db.routes:each(1000) do
       if err then
@@ -110,7 +148,7 @@ do
       end
 
       if should_process_route(route) then
-        local service, err = get_service_for_route(db, route)
+        local service, err = get_service_for_route(db, route, services_cache)
         if err then
           return nil, err
         end
