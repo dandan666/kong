@@ -5,11 +5,11 @@
 
 Kong is a cloud-native, fast, scalable, and distributed Microservice
 Abstraction Layer *(also known as an API Gateway, API Middleware or in some
-cases Service Mesh)*. Made available as an open-source project in 2015, its
+cases Service Mesh)*. It was made available as an open-source project in 2015 and its
 core values are high performance and extensibility.
 
 Actively maintained, Kong is widely used in production at companies ranging
-from startups to Global 5000 as well as government organizations.
+from startups to Global 5000, as well as government organizations.
 
 [Installation](https://konghq.com/install) |
 [Documentation](https://docs.konghq.com) |
@@ -29,11 +29,11 @@ IRC (freenode): [#kong](https://webchat.freenode.net/?channels=kong) |
 
 ## Why Kong?
 
-If you are building for the web, mobile, or IoT (Internet of Things) you will
-likely end up needing common functionality to run your actual software. Kong
-can help by acting as a gateway (or a sidecar) for microservices requests while
-providing load balancing, logging, authentication, rate-limiting,
-transformations, and more through plugins.
+If you are building for the web, mobile, or IoT (Internet of Things), you will
+likely need common functionality to run your actual software. Kong
+act as a gateway for microservices requests while providing load balancing,
+logging, authentication, rate-limiting, transformations, and more through plugins.
+Thus, a great option when building for the web.
 
 [![][kong-benefits]][kong-url]
 
